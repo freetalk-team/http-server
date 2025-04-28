@@ -1,0 +1,14 @@
+FROM prod:alpine3.21
+
+ARG SERVER_BINARY
+ARG WWW_ROOT
+ARG CONFIG
+
+# Set working directory
+WORKDIR /app
+
+COPY ${SERVER_BINARY} /app/server
+COPY ${WWW_ROOT} /app/www
+COPY ${CONFIG} /app/config.js
+
+ENTRYPOINT ["/app/server", "0.0.0.0", "8080", "www", "config.js", "4"]

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<head>
+<link rel="stylesheet" href="dist/main.min.css">
+</head>
+
+<body class="w3-content cc">
+<a href="/">Home</a>
+<h1>Users: <% users.length %> </h1>
+
+<% for (users) %>
+
+<b>Name:</b>
+<span><% v.name %></span>
+
+<% endfor %>
+
+<% if (p) %>
+<a href="<% p %>">prev</a> 
+<% endif %>
+
+<% if (n) %>
+<a href="<% n %>">next</a> 
+<% endif %>
+
+</body>

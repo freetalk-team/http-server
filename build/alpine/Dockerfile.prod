@@ -1,0 +1,9 @@
+FROM node:alpine3.21
+
+RUN apk update
+RUN apk add \
+	nginx \
+	sqlite-libs \
+	postgresql17
+
+RUN mkdir /app

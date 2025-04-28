@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+
+<link rel="stylesheet" href="site.css">
+<link rel="stylesheet" href="dist/main.min.css">
+
+<script src="dist/utils-base.min.js"></script>
+<script src="dist/core.min.js"></script>
+
+</head>
+<body class="column w3-content">
+<h1 class="w3-light-grey w3-round w3-padding"><% Site.name %> - <% Site.domain %></h1>
+
+<form action="/user" class="w3-content cc m10">
+<% for (schema) %>
+<div class="cr ci m20">
+	<b class="fit"><% v.name %></b>
+	<input class="fit" name="<% v.name %>" type="<% v.type %>">
+</div>
+<% endfor %>
+<input type="submit" class="ux" value="Add">
+</div>
+
+</body>
+</html>

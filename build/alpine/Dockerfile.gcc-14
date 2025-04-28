@@ -1,0 +1,39 @@
+FROM alpine:3.20
+
+# Install build tools and dependencies
+RUN apk add --no-cache \
+    build-base \
+    bash \
+    wget \
+    tar \
+    xz \
+    gmp-dev \
+    mpfr-dev \
+    mpc1-dev \
+    isl-dev \
+    zlib-dev \
+    libstdc++ \
+    libgcc \
+    make \
+    binutils
+
+# Set environment variables
+ENV GCC_VERSION=14.1.0
+ENV PREFIX=/opt/gcc14
+ENV PATH=$PREFIX/bin:$PATH
+
+# Download and build GCC
+RUN mkdir -p /tmp/gcc && cd /tmp/gcc && \
+    wget https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.xz && \
+    tar -xf gcc-${GCC_VERSION}.tar.xz && \
+    cd gcc-${GCC_VERSION} && \
+    ./contrib/download_prerequisites && \
+    mkdir build && cd build && \
+    ../configure --disable-multilib --enable-languages=c,c++ --prefix=$PREFIX && \
+    make -j$(nproc) && \
+    make install && \
+    cd / && rm -rf /tmp/gcc
+
+# Verify installation
+RUN g++ --version
+

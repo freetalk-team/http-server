@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # Nginx service
+  nginx:
+    image: prod:alpine3.21
+    ports:
+      - "8080:80"   # Expose Nginx on port 80
+    # command: ["nginx"]
+    command: sh -c "nginx && tail -f /var/log/nginx/error.log"
+    volumes:
+      - ./examples/www:/app/www  # Serve static files from the `public` directory
+      - ./examples/nginx/router.conf:/etc/nginx/http.d/default.conf
+    depends_on:
+      - login # Nginx will depend on Node.js for login/logout routes
+      - server  # Nginx will forward all other requests to the custom server
+
+  # Node.js service (Express)
+  login:
+    image: prod:alpine3.21
+    working_dir: /app/node
+    command: ["node", "server.js"]
+    volumes:
+      - ./examples/http/login:/app/node  # Mount your Node.js app
+    expose:
+      - "3000"  # Expose port internally within the Docker network (but not to the outside)
+
+  # Custom Server service
+  server:
+    image: prod:alpine3.21
+    working_dir: /app
+    command: ["./server", "0.0.0.0", "4000", "www", "config.js"]
+    volumes:
+      - ./examples/www:/app/www  # Serve static files from the `public` directory
+      - ./examples/config/basic.js:/app/config.js
+      - ./examples/db/user.db:/app/user.db
+      - ./out/alpine/server:/app/server
+    expose:
+      - "4000"
+
