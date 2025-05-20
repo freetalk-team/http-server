@@ -392,6 +392,10 @@ struct SOCI_SQLITE3_DECL sqlite3_session_backend : details::session_backend
         }
     }
 
+    std::string timestamp(const std::string & columnName) override {
+        return "datetime(:" + columnName + ", 'unixepoch')";
+    }
+
     // Get information about SQLite3 version used.
     static const char* libversion();
     static int libversion_number();

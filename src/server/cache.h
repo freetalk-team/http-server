@@ -5,6 +5,7 @@ bool set_cache_headers(const Request& req,
 					   Response& res,
 					   const std::string& etag,
 					   int max_age_seconds) {
+
 	// Set Cache-Control
 	res.set(http::field::cache_control, "public, max-age=" + std::to_string(max_age_seconds));
 	res.set(http::field::etag, etag);
@@ -42,6 +43,8 @@ bool set_cache_headers(const http::request<Body, http::basic_fields<Allocator>>&
 					   http::response<http::string_body>& res,
 					   size_t size, int64_t ts, 
 					    int max_age_seconds = 3600) {
+	if (max_age_seconds == 0)
+		return false;
 
 	// Generate ETag
 	std::string etag = compute_etag(ts, size);

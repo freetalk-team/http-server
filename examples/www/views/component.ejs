@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<% include('head-app.ejs') %>
+
+<body class="column w3-content">
+
+<% include('header.ejs') %>
+
+<div class="row">
+
+	<div class="w3-container fit">
+		<component name="user-sidebar"></component>
+	</div>
+
+	<div class="w3-container fit3">
+		<component name="user"></component>
+	</div>
+
+
+</div>
+	
+<script type="module">
+
+	import AppBase from '/app.js';
+
+	class App extends AppBase {
+
+	}
+
+	window.App = App;
+
+	const app = new App();
+
+
+	app.loadComponents(document.body);
+
+</script>
+
+</body>
+</html>

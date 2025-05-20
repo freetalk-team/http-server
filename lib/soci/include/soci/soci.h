@@ -60,4 +60,10 @@
 #include "soci/std-optional.h"
 #endif // SOCI_HAVE_CXX17
 
+namespace soci {
+
+SOCI_DECL std::string convert_to_string(const std::tm&);
+
+}
+
 #endif // SOCI_H_INCLUDED

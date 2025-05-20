@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project (HttpServer VERSION 1.0.1 LANGUAGES CXX)
+project (HttpServer VERSION 1.0.1 LANGUAGES CXX C)
 
 set (Boost_USE_STATIC_LIBS ON)
 find_package (Boost 1.83.0 COMPONENTS context filesystem system thread url iostreams)
@@ -36,8 +36,7 @@ include_directories(
 	${CMAKE_BINARY_DIR}/include
 )
 
-add_subdirectory(lib/tinyjs)
-add_subdirectory(lib/soci)
+add_subdirectory(lib)
 
 set(LIBRARIES 
 	router

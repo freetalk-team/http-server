@@ -1,19 +1,19 @@
 
 #include "router.h"
 #include "context.h"
+#include "utils.h"
 
-#include <boost/url.hpp>
-
-#include <charconv>
 #include <print>
 
-Router::Context::Query parse_query(const std::string& query);
-
+const auto SESSION_SECRET = get_env_var("SESSION_SECRET", "your_secret_key");
 
 Router::Router() {}
 
-Router::~Router() {
+Router::~Router() {}
 
+Router& Router::get() {
+	static Router r;
+	return r;
 }
 
 bool Router::init(const char* path, const std::string& root, int pool_size) {
@@ -28,75 +28,103 @@ void Router::cleanup() {
 	ctx->cleanup();
 }
 
-Router::ReturnType Router::get(const std::string& path, bool mobile) {
+Router::ReturnType Router::get(const std::string& path, const Headers& hdr, bool mobile) {
 
-	auto ec = boost::urls::parse_origin_form(path);
+	Context::QueryParams qp;
 
-	if (ec.has_error()) {
-		// todo
-
+	if (!qp.parse(path)) {
 		std::println("Failed to execute path: {0}", path);
-		return { 400, "Invalid url" };
+		return { 400, "Invalid url", "text/plain" };
 	}
 
-	auto url = ec.value();
-	auto route = url.encoded_path().decode();
+	std::println("URI: {0}", qp.route);
 
-	std::println("URI: {0}", route);
+	auto r = ctx->find(Router::GET, qp.route);
+	if (!r.route)
+		return { 404, "Not found" };
 
-	auto r = ctx->find(Router::GET, route);
+	if (!hdr.token.empty()) {
 
-	if (r.route != nullptr) {
-		std::println("Executing GET => {0}", path);
-
-		Context::QueryParams params = { 
-			path, 
-			std::move(route),
-			std::move(r.params), 
-			parse_query(url.encoded_query().decode()),
-			mobile
-		};
-
-		return ctx->get(*r.route, params);
+		if (!qp.parse_auth_token(hdr.token, SESSION_SECRET))
+			return { 400, "Invalid token", "text/plain" };
+	}
+	else if (!hdr.key.empty()) {
+		if (!qp.parse_auth_header(hdr.key))
+			return { 400, "Invalid auth", "text/plain" };
 	}
 
-	return { 404, "Not found" };
+	std::println("Executing GET => {0}", path);
+
+	qp.params = std::move(r.params);
+	qp.mobile = mobile;
+
+	return ctx->get(*r.route, qp);
+
 }
 
-Router::ReturnType Router::post(const std::string& path, const std::string& body) {
+Router::ReturnType Router::post(const std::string& path, const std::string& body, Payload type, const Headers& hdr) {
+
+	Context::QueryParams qp;
+
+	if (!qp.parse(path)) {
+		std::println("Failed to execute path: {0}", path);
+		return { 400, "Invalid url", "text/plain" };
+	}
 
 	std::println("BODY:\n{0}", body);
+	std::println("URI: {0}", qp.route);
 
-	auto ec = boost::urls::parse_origin_form(path);
+	auto r = ctx->find(Router::POST, qp.route);
+	if (!r.route)
+		return { 404, "Not found" };
 
-	if (ec.has_error()) {
-		// todo
+	if (!hdr.token.empty()) {
 
+		if (!qp.parse_auth_token(hdr.token, SESSION_SECRET))
+			return { 400, "Invalid token", "text/plain" };
+	}
+	else if (!hdr.key.empty()) {
+		if (!qp.parse_auth_header(hdr.key))
+			return { 400, "Invalid auth", "text/plain" };
+	}
+
+	qp.params = std::move(r.params);
+		//qp.mobile = mobile;
+
+	return ctx->post(*r.route, qp, body, type);
+}
+
+Router::ReturnType Router::remove(const std::string& path, const Headers& hdr) {
+
+	Context::QueryParams qp;
+
+	if (!qp.parse(path)) {
 		std::println("Failed to execute path: {0}", path);
-		return { 400, "Invalid url" };
+		return { 400, "Invalid url", "text/plain" };
 	}
 
-	auto url = ec.value();
-	auto route = url.encoded_path().decode();
-	auto query = url.encoded_query().decode();
+	std::println("URI: {0}", qp.route);
 
-	std::println("URI: {0}, {1}", route, query);
+	auto r = ctx->find(Router::DELETE, qp.route);
+	if (!r.route)
+		return { 404, "Not found" };
 
-	auto r = ctx->find(Router::POST, path);
-
-	if (r.route != nullptr) {
-		std::println("Executing POST => {0}",path);
-
-		auto& route = *r.route;
-		auto& params = r.params;
-
-		for (auto& [name, value] : params)
-			std::println("  {0} => {1}", name, value);
-
-		return ctx->post(*r.route, r.params, body);
+	if (!hdr.token.empty()) {
+		if (!qp.parse_auth_token(hdr.token, SESSION_SECRET))
+			return { 400, "Invalid token", "text/plain" };
+	}
+	else if (!hdr.key.empty()) {
+		if (!qp.parse_auth_header(hdr.key))
+			return { 400, "Invalid auth", "text/plain" };
 	}
 
-	return { 404, "Not found" };
+	std::println("Executing POST => {0}",path);
+
+	qp.params = std::move(r.params);
+	//qp.mobile = mobile;
+
+	return ctx->remove(*r.route, qp);
+
 }
 
 void Router::dump() const {
@@ -131,40 +159,4 @@ std::string Router::method(Method m) {
 	return methods[m];
 } 
 
-std::optional<int> parse_int(const std::string& s) {
-	int value;
-	auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), value);
-	if (ec == std::errc() && ptr == s.data() + s.size()) {
-		return value;
-	}
-	return std::nullopt; // Failed to parse
-}
 
-Router::Context::Query parse_query(const std::string& query) {
-	Router::Context::Query result;
-
-	std::istringstream ss(query);
-	std::string pair;
-
-	while (std::getline(ss, pair, '&')) {
-		size_t eq_pos = pair.find('=');
-		if (eq_pos != std::string::npos) {
-			auto key = pair.substr(0, eq_pos);
-			auto value = pair.substr(eq_pos + 1);
-
-			if (key == "o") {
-
-				auto offset = parse_int(value);
-
-				if (offset)
-					result.offset = *offset;
-			}
-			else {
-				result[key] = std::move(value);
-			}
-		
-		}
-	}
-
-	return std::move(result);
-}

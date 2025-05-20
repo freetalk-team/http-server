@@ -72,6 +72,7 @@ enum class  LEX_TYPES {
 	LEX_OR = '|',
 	LEX_R_BRACE = '}',
 	LEX_TILDA = '~',
+	LEX_HASHTAG = '#',
 
 
 	LEX_ID = 256,

@@ -1,0 +1,25 @@
+
+
+<template id="post-list" class="cc m10">
+	<h3 class="wm8">Posts:</h3>
+	<div class="cc m5" list="post-list-item"></div>
+</template>
+
+<template id="user-list-item" class="cc w3-padding" item>
+	<h4>{{this.title}}</h4>
+	<b>{{this.summary}}</b>
+	<div>{{this.md}}</div>
+</template>
+	
+<script>
+
+class PostComponent extends App.ListComponent {
+
+	static ds = {
+		remote: '/api/post'
+	}
+}
+
+App.registerComponent('post', PostComponent);
+
+</script>;

@@ -49,13 +49,14 @@ using acceptor_type = typename net::ip::tcp::acceptor::rebind_executor<executor_
 
 using namespace std::chrono_literals;
 
+const auto CleanupInterval = 20s;
+
 Router router;
 
 #include "server/cache.h"
 #include "server/request.h"
 #include "server/session.h"
 #include "server/timer.h"
-
 
 
 
@@ -246,6 +247,8 @@ listen(
 				{
 					if(e)
 					{
+						// std::cerr << boost::stacktrace::stacktrace();
+
 						try
 						{
 							std::rethrow_exception(e);
@@ -303,7 +306,7 @@ main(int argc, char* argv[])
 	// Check command line arguments.
 	// Check command line arguments.
 	if (argc < 3) {
-		std::cerr << "Usage: server <address> <port> <doc_root=.> <config=config.js> <num_workers=4>\n";
+		std::cerr << "Usage: server <address> <port> <doc_root=.> <config=router.conf> <num_workers=4>\n";
 		std::cerr << "  For IPv4, try:\n";
 		std::cerr << "    server 0.0.0.0 80 . config.js 4\n";
 		std::cerr << "  For IPv6, try:\n";
@@ -313,7 +316,7 @@ main(int argc, char* argv[])
 
 	const char* args[] = { argv[1], argv[2],
 		argc < 4 ? "." : argv[3],
-		argc < 5 ? "config.js" : argv[4],
+		argc < 5 ? "router.conf" : argv[4],
 		argc < 6 ? "4" : argv[5]
 	};
 
@@ -379,7 +382,7 @@ main(int argc, char* argv[])
 		v.emplace_back([&ioc] { ioc.run(); });
 
 	net::co_spawn(ioc,
-		start_periodic_timer(ioc, 120s, []() {
+		start_periodic_timer(ioc, CleanupInterval, []() {
 			router.cleanup();
 		}),
 		task_group.adapt([](std::exception_ptr e) {

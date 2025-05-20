@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+
+<head>
+	
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+
+<link rel="stylesheet" href="/dist/main.min.css">
+<link rel="stylesheet" href="/dist/mde.min.css">
+<link rel="stylesheet" href="/site.css">
+
+<script src="/dist/mde.min.js"></script>
+
+</head>
+
+<body class="w3-content cc">
+
+<% include('header.ejs') %>
+
+<form class="cc 20" action="/post" method="post">
+
+	<div class="cc">
+		<b class="larger">Title:</b>
+		<input type="text" name="title" spellcheck="false">
+	</div>
+
+	<div class="cc">
+		<b class="larger">Summary:</b>
+		<input type="text" name="summary" spellcheck="false">
+	</div>
+
+	<div class="cc">
+		<b class="larger">Content:</b>
+		<textarea id="description" name="md" style="resize:none" rows="20"></textarea>
+	</div>
+
+	<button id="submit" type="submit" class="w3-btn w3-blue">Add</button>
+</form>
+
+<script>
+
+
+const textarea = document.getElementById('description')
+	, sumbit = document.getElementById('submit')
+	;
+
+const mde = MDE.wrap(textarea);
+
+sumbit.onclick = () => mde.toTextArea();
+
+</script>
+
+</body>

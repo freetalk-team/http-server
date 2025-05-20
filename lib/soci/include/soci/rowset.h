@@ -125,6 +125,13 @@ public:
         st_->execute();
     }
 
+     rowset_impl(statement st)
+        : refs_(1), st_(new statement(st)), define_(new T())
+    {
+        st_->exchange_for_rowset(into(*define_));
+        st_->execute();
+    }
+
     void incRef()
     {
         ++refs_;
@@ -181,6 +188,11 @@ public:
     {
     }
 
+    rowset(statement st)
+        : pimpl_(new details::rowset_impl<T>(st))
+    {
+    }
+
     rowset(rowset const & other)
         : pimpl_(other.pimpl_)
     {
@@ -227,6 +239,10 @@ public:
     const_iterator end() const
     {
         return pimpl_->end();
+    }
+
+    statement& st() {
+        return *pimpl_->st_;
     }
 
 private:

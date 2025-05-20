@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+<% include('head.ejs') %>
+
+<body class="w3-content cc">
+
+<% include('header.ejs') %>
+
+<div class="cr ci">
+
+	<form id="search-form" class="search-box" action="/post" method="GET">
+		<input type="text" name="name" placeholder="Search...">
+		<button type="submit" class="icon fa fa-search"></button>
+	</form>
+
+	<a href="/post/new" class="margin-left-auto w3-blue w3-btn w3-round">Add</a>
+
+</div>
+
+<h2>Posts: <% posts.length %> </h2>
+
+<% for (posts) %>
+
+	<a href="/post/<% v.id %>" class="cc nounderline">
+		<h3><% v.title %></h3>
+		<div class="cr ci">
+			<span><b>Author: </b><% v.username %></span>
+			<i class="smaller margin-left-auto"><% shortDate(v.created) %></i>
+		</div>
+		<p><% v.summary %></p>
+	</a>
+
+<% endfor %>
+
+<div class="cr ci m15 w3-light-grey w3-round w3-padding">
+
+<% if (prev) %>
+<a href="<% prev %>">prev</a> 
+<% endif %>
+
+<% if (next) %>
+<a href="<% next %>">next</a> 
+<% endif %>
+
+</div>
+
+
+<script>
+
+	const form = document.getElementById("search-form");
+	const input = form.querySelector('input[name="name"]');
+
+	form.addEventListener("submit", function (e) {
+		if (!input.value.trim()) {
+			e.preventDefault();
+			alert("Please enter a search term.");
+		}
+	});
+</script>
+
+</body>

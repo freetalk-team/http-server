@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<% include('head.ejs') %>
+
+<body class="column w3-content">
+
+<% include('header.ejs') %>
+
+<h1>Hi, <% user.name %>, role: <% user.role %></h1>
+<form action="/logout" method="post">
+    <input type="submit" value="Logout">
+</form>
+<a href="/user">Add user</a>
+
+<% include('footer.ejs') %>
+
+</body>
+</html>

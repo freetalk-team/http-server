@@ -1,7 +1,6 @@
 #include "utils.h"
 
 #include <boost/beast.hpp>
-#include <jwt-cpp/jwt.h>
 
 #include <fstream>
 #include <sstream>
@@ -11,7 +10,6 @@
 
 namespace beast = boost::beast;
 namespace fs = std::filesystem;
-
 
 beast::string_view
 mime_type(beast::string_view path)
@@ -31,7 +29,7 @@ mime_type(beast::string_view path)
 	
 	if(iequals(type, "htm"))   return "text/html";
 	if(iequals(type, "html"))  return "text/html";
-	if(iequals(type, "php"))   return "text/html";
+	if(iequals(type, "xhtml")) return "text/html";
 	if(iequals(type, "css"))   return "text/css";
 	if(iequals(type, "txt"))   return "text/plain";
 	if(iequals(type, "js"))    return "application/javascript";
@@ -53,7 +51,7 @@ mime_type(beast::string_view path)
 	if(iequals(type, "ttf"))   return "font/ttf";
 	if(iequals(type, "woff2")) return "font/woff2";
 
-	return "application/octet-stream";
+	return "";
 }
 
 bool is_mobile_user_agent(std::string_view user_agent) {
@@ -104,7 +102,8 @@ path_cat(beast::string_view base, beast::string_view path) {
 std::string 
 compute_etag(int64_t ts, size_t size) {
 	std::ostringstream oss;
-	oss << '"' << size << '-' << ts << '"';
+	// oss << '"' << size << '-' << ts << '"';
+	oss << '"' << size << ts << '"';
 	return oss.str();
 }
 
@@ -127,28 +126,10 @@ std::string compute_etag(const fs::path& file_path) {
 	return compute_etag(file_path, size);
 }
 
-// Function to decode and verify JWT
-std::optional<std::string>
-decode_jwt(const std::string& token, const std::string& secret_key, std::string& name) {
-	try {
-		// Replace `your_secret_key` with the same secret used for signing the JWT
-		//const std::string secret_key = "your_secret_key";
-
-		// Decode the JWT token using the secret key
-		auto decoded_token = jwt::decode(token);
-
-		return decoded_token.get_payload_claim(name).as_string();
-	
-	} catch (const jwt::error::token_verification_exception& e) {
-		std::cerr << "Error decoding JWT: " << e.what() << std::endl;
-	}
-
-	return {};
-}
-
-std::map<std::string, std::string> parse_cookies(const std::string& cookie_header) {
+Params parse_cookies(std::string_view header) {
 	std::map<std::string, std::string> cookies;
-	std::istringstream stream(cookie_header);
+	std::string h(header.data(), header.size()); // temporary until C++26
+	std::istringstream stream(h);
 	std::string pair;
 	while (std::getline(stream, pair, ';')) {
 		auto separator = pair.find('=');
@@ -162,5 +143,5 @@ std::map<std::string, std::string> parse_cookies(const std::string& cookie_heade
 			cookies[key] = value;
 		}
 	}
-	return cookies;
+	return std::move(cookies);
 }

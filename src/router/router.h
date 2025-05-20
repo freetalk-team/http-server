@@ -21,6 +21,14 @@ class Router {
 		METHOD_COUNT
 	};
 
+	enum class Payload : int {
+		JSON,
+		FORM
+	};
+
+	struct Headers {
+		std::string token, key;
+	};
 
 	struct ReturnType {
 		int status = 200;
@@ -30,15 +38,25 @@ class Router {
 		unsigned expires = 0;
 	};
 
+
 	Router();
 	~Router();
+
+	static Router& get();
 
 	bool init(const char* config, const std::string& root = ".", int pool_size=4);
 
 	std::string const& publicDir() const;
 
-	ReturnType get(const std::string& path, bool mobile = false);
-	ReturnType post(const std::string& path, const std::string& body);
+	ReturnType get(const std::string& path, const Headers& = {}, bool mobile = false);
+
+	ReturnType post(
+		const std::string& path, 
+		const std::string& body, 
+		Payload = Payload::JSON, 
+		const Headers& = {});
+
+	ReturnType remove(const std::string& path, const Headers& = {});
 
 	void cleanup();
 
@@ -46,7 +64,7 @@ class Router {
 
 	void dump() const;
 
-	struct Context;
+	class Context;
 
 private:
 

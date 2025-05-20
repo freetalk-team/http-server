@@ -513,6 +513,16 @@ void CScriptLex::getNextToken() {
 		getNextToken();
 		return;
 	}
+
+	if (currCh == LEX_TYPES::LEX_HASHTAG) {
+		while (currCh != LEX_TYPES::LEX_EOF && currCh != LEX_TYPES::LEX_CR) {
+			getNextCh();
+		}
+		getNextCh();
+		getNextToken();
+		return;
+	}
+
 	// block comments
 	if (currCh == LEX_TYPES::LEX_DIV && nextCh == LEX_TYPES::LEX_MUL) {
 		while (currCh != LEX_TYPES::LEX_EOF && (currCh != LEX_TYPES::LEX_MUL || nextCh != LEX_TYPES::LEX_DIV)) {

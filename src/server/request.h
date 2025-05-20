@@ -12,6 +12,14 @@ bool is_mobile(Request const& req) {
 	return false;
 }
 
+template<class Request>
+void print_headers(Request const& req) {
+	std::cout << "Headers:\n";
+	for (const auto& field : req) {
+		std::cout << field.name_string() << ": " << field.value() << "\n";
+	}
+}
+
 
 // Return a response for the given request.
 //
@@ -40,11 +48,27 @@ handle_request(
 	auto const not_found =
 	[&req](beast::string_view target)
 	{
+		// std::println("NOT Found: {0}", target);
+		std::cerr << "Not found: " << target << "\n";
+
 		http::response<http::string_body> res{http::status::not_found, req.version()};
 		res.set(http::field::server, kServer);
 		res.set(http::field::content_type, "text/html");
 		res.keep_alive(req.keep_alive());
 		res.body() = "The resource '" + std::string(target) + "' was not found.";
+		res.prepare_payload();
+		return res;
+	};
+
+	// Returns a not found response
+	auto const forbidden =
+	[&req](beast::string_view target)
+	{
+		http::response<http::string_body> res{http::status::forbidden, req.version()};
+		res.set(http::field::server, kServer);
+		res.set(http::field::content_type, "text/html");
+		res.keep_alive(req.keep_alive());
+		res.body() = "Access is forbidden.";
 		res.prepare_payload();
 		return res;
 	};
@@ -63,9 +87,9 @@ handle_request(
 	};
 
 	// Make sure we can handle the method
-	if( req.method() != http::verb::get &&
-		req.method() != http::verb::head)
-		return bad_request("Unknown HTTP-method");
+	// if( req.method() != http::verb::get &&
+	// 	req.method() != http::verb::head)
+	// 	return bad_request("Unknown HTTP-method");
 
 	auto&& target = req.target();
 
@@ -75,20 +99,80 @@ handle_request(
 		target.find("..") != beast::string_view::npos)
 		return bad_request("Illegal request-target");
 
-
+	// print_headers(req);
 
 	auto&& mime = mime_type(target);
 
+	// Print each cookie in the request
+	// for(auto param : http::param_list(req[http::field::cookie]))
+	// 	std::cout << "Cookie '" << param.first << "' has value '" << param.second << "'\n";
+
 	if (mime.size() == 0) {
+
+		if (req.method() == http::verb::head) 
+			return bad_request("HEAD file only");
+
+		
+		Router::ReturnType r;
+		Router::Headers params;
+
+		if (auto cookie = req[http::field::cookie]; !cookie.empty()) {
+
+			auto cookies = parse_cookies(cookie);
+
+			if (auto auth = cookies.find("AuthToken"); auth != cookies.end()) {
+				params.token = auth->second;
+			}
+		}
+
+		if (auto auth = req[http::field::authorization]; !auth.empty()) {
+			params.key = auth;
+		}
+
 		// todo: call router
 
-		auto r = router.get(target, is_mobile(req));
+		
+		if (req.method() == http::verb::get)
+		 	r = router.get(target, params, is_mobile(req));
+		else if (req.method() == http::verb::post) {
+			auto content_type = req[http::field::content_type];
+
+			Router::Payload type = content_type == "application/json" || content_type.rfind("application/json;", 0) == 0
+				? Router::Payload::JSON
+				: Router::Payload::FORM;
+
+			r = router.post(target, req.body(), type, params);
+		}
+		else if (req.method() == http::verb::delete_) {
+			r = router.remove(target, params);
+		}
+		else 
+			return bad_request("Unknown HTTP-method");
+
 
 		if (r.status < 300) {
 
 			http::response<http::string_body> res{http::status::ok, req.version()};
 			res.set(http::field::server, kServer);
 			res.set(http::field::content_type, r.type);
+
+
+			// if (req.method() == http::verb::get) {
+				
+			// 	if (!set_cache_headers(req, res, r.body.size(), r.ts, r.expires)) {
+
+			// 		res.set(http::field::content_encoding, "gzip");
+			// 		res.body() = r.body;
+			// 		res.prepare_payload();
+			// 	}
+			// }
+			// else if (req.method() == http::verb::post) {
+
+			// 	if (r.body.size() > 0) {
+			// 		res.body() = r.body;
+			// 		res.prepare_payload();
+			// 	}
+			// }
 
 			if (!set_cache_headers(req, res, r.body.size(), r.ts, r.expires)) {
 
@@ -102,10 +186,32 @@ handle_request(
 			return res;
 		}
 
+		if (r.status == 308) {
+			http::response<http::string_body> res{http::status::found, req.version()};
+			res.set(http::field::server, kServer);
+			res.set(http::field::location, r.body); // The URL to redirect to
+			res.keep_alive(req.keep_alive());
+			res.prepare_payload();
+
+			return res;
+		}
+
 		if (r.status >= 500)
 			return server_error(r.body.empty() ? "Internal error" : r.body);
 
-		if (target.back() != '/')
+		if (r.status != 404) {
+
+			switch (r.status) {
+
+				case 403:
+				return forbidden(target);
+				
+				default:
+				return bad_request(r.body);
+			}
+
+		} 
+		else if (target.back() != '/')
 			return not_found("Not found");
 	}
 
@@ -115,7 +221,7 @@ handle_request(
 	if(target.back() == '/')
 		path.append("index.html");
 
-	std::println("GET: {0}", path);
+	std::println("GET file: {0}", path);
 
 	// Attempt to open the file
 	beast::error_code ec;

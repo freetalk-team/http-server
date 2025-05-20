@@ -22,6 +22,9 @@ services:
     command: ["node", "server.js"]
     volumes:
       - ./examples/http/login:/app/node  # Mount your Node.js app
+    environment:
+      - API_KEY=mykey
+      - API_SERVER=http://host.docker.internal:5000/api/login
     expose:
       - "3000"  # Expose port internally within the Docker network (but not to the outside)
 
@@ -35,6 +38,8 @@ services:
       - ./examples/config/basic.js:/app/config.js
       - ./examples/db/user.db:/app/user.db
       - ./out/alpine/server:/app/server
+    environment:
+      - API_KEY=mykey
     expose:
       - "4000"
 

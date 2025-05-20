@@ -1,25 +1,52 @@
 <!DOCTYPE html>
-<head>
-<link rel="stylesheet" href="dist/main.min.css">
-</head>
+
+<% include('head.ejs') %>
 
 <body class="w3-content cc">
-<a href="/">Home</a>
-<h1>Users: <% users.length %> </h1>
+
+<% include('header.ejs') %>
+
+<form id="search-form" class="search-box" action="/user" method="GET">
+	<input type="text" name="name" placeholder="Search...">
+	<button type="submit" class="icon fa fa-search"></button>
+</form>
+
+<h2>Users: <% users.length %> </h2>
 
 <% for (users) %>
 
-<b>Name:</b>
-<span><% v.name %></span>
+<div class="cr ci">
+	<b>Name:</b>
+	<a href="/user/<% v.id %>"><% v.name %></a>
+</div>
 
 <% endfor %>
 
-<% if (p) %>
-<a href="<% p %>">prev</a> 
+<div class="cr ci m15 w3-light-grey w3-round w3-padding">
+
+<% if (prev) %>
+<a href="<% prev %>">prev</a> 
 <% endif %>
 
-<% if (n) %>
-<a href="<% n %>">next</a> 
+<% if (next) %>
+<a href="<% next %>">next</a> 
 <% endif %>
+
+</div>
+
+<% include('footer.ejs') %>
+
+<script>
+
+	const form = document.getElementById("search-form");
+	const input = form.querySelector('input[name="name"]');
+
+	form.addEventListener("submit", function (e) {
+		if (!input.value.trim()) {
+			e.preventDefault();
+			alert("Please enter a search term.");
+		}
+	});
+</script>
 
 </body>

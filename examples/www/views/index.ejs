@@ -1,24 +1,26 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
-<head>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta charset="utf-8">
+<% include('head.ejs') %>
 
-<link rel="stylesheet" href="site.css">
-<link rel="stylesheet" href="dist/main.min.css">
-
-<script src="dist/utils-base.min.js"></script>
-<script src="dist/core.min.js"></script>
-
-
-<style>
-
-</style>
-</head>
 <body class="column w3-content">
-<h1 class="w3-light-grey w3-round w3-padding"><% Site.name %> - <% Site.domain %></h1>
-<a href="/users">Users</a>
+
+<% include('header.ejs') %>
+
+<form class="cc m10" method="post" action="/login">
+	
+	<div class="cr ci">
+		<b class="fit">username:</b>
+		<input type="text" name="username" />
+	</div>
+
+	<div class="cr ci">
+		<b class="fit">password:</b>
+		<input type="password" name="password" />
+	</div>
+
+	<button type="submit">Login</button>
+</form>
 
 <% include('footer.ejs') %>
 

@@ -16,7 +16,7 @@ public:
 		unsigned expires;
 	};
 
-	int64_t put(const std::string& key, const std::string& content, const std::string_view& type, unsigned seconds = 10*60 );
+	int64_t put(const std::string& key, const std::string& content, std::string_view type, unsigned seconds = 10*60 );
 
 	std::optional<Result> 
 	get(const std::string& key);

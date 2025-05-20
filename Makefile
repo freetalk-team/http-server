@@ -1,5 +1,6 @@
 # Variables
 DEBUG=$(abspath debug)
+RELEASE=$(abspath release)
 ALPINE=$(abspath out/alpine)
 CONFIG=$(abspath examples/config/basic.js)
 ROOT=$(abspath examples/www)
@@ -16,6 +17,9 @@ all: debug
 
 debug: | $(DEBUG)
 	cd $(DEBUG) && make -j4
+
+release: | $(RELEASE)
+	cd $(RELEASE) && make -j4
 	
 prod: | $(ALPINE)
 	docker run -it --rm \
@@ -64,14 +68,17 @@ $(DEBUG):
 $(ALPINE):
 	mkdir -p $(ALPINE)
 
+$(RELEASE):
+	mkdir -p $(RELEASE) && cd $(RELEASE) && cmake $(PWD) -DCMAKE_BUILD_TYPE=Release
+
 # Show help
 help:
 	@echo "Makefile targets:"
-	@echo "  debug      - Build code debug
-	@echo "  prod       - Build code for production
-	@echo "  run        - Run server
-	@echo "  run-alpine - Run server in Alpine container
-	@echo "  run-prod   - Run production server
-	@echo "  clean      - Clean binaries
-	@echo "  all        - Build 
+	@echo "  debug      - Build code debug"
+	@echo "  prod       - Build code for production"
+	@echo "  run        - Run server"
+	@echo "  run-alpine - Run server in Alpine container"
+	@echo "  run-prod   - Run production server"
+	@echo "  clean      - Clean binaries"
+	@echo "  all        - Build"
 

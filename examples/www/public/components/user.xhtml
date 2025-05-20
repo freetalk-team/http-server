@@ -1,0 +1,25 @@
+
+
+<template id="user-list" class="cc m10">
+	<h3>Users:</h3>
+	<div class="cc m5" list="user-list-item"></div>
+</template>
+
+<template id="user-list-item" class="cr ci" item>
+	<b class="fit">{{this.name}}</b>
+	<i class="fit2 text-center">{{this.email}}</i>
+	<button class="icon fa" name="rm"></button>
+</template>
+	
+<script>
+
+class UserComponent extends App.ListComponent {
+
+	static ds = {
+		remote: '/api/user'
+	}
+}
+
+App.registerComponent('user', UserComponent);
+
+</script>;

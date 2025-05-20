@@ -1,0 +1,21 @@
+
+
+<template id="user-sidebar-list" class="cc m2 list" list="user-sidebar-list-item">
+</template>
+
+<template id="user-sidebar-list-item" class="cc w3-padding wm6" item>
+	<b class="larger">{{this.name}}</b>
+</template>
+	
+<script>
+
+class UserSidebarComponent extends App.ListComponent {
+
+	static ds = {
+		remote: '/api/user'
+	}
+}
+
+App.registerComponent('user-sidebar', UserSidebarComponent);
+
+</script>;

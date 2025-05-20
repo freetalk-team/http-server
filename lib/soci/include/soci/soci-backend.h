@@ -596,6 +596,9 @@ public:
         return alter_column(tableName, columnName, to_db_type(dt), precision, scale);
     }
 
+    virtual std::string timestamp(const std::string & columnName) {
+        return ":" + columnName;
+    }
 
     failover_callback * failoverCallback_;
     session * session_;

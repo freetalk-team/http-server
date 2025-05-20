@@ -32,7 +32,7 @@ SOCI_POSTGRESQL_DECL backend_factory const * factory_postgresql()
 
 SOCI_POSTGRESQL_DECL void register_factory_postgresql()
 {
-    soci::dynamic_backends::register_backend("postgre", soci::postgresql);
+    soci::dynamic_backends::register_backend("pg", soci::postgresql);
 }
 
 } // extern "C"

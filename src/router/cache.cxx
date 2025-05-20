@@ -3,12 +3,15 @@
 #include <mutex>
 #include <print>
 
-int64_t Cache::put(const std::string& key, const std::string& content, const std::string_view& type, unsigned seconds) {
+int64_t Cache::put(const std::string& key, const std::string& content, const std::string_view type, unsigned seconds) {
 		
 	auto ttl = std::chrono::steady_clock::now() + std::chrono::seconds(seconds);
 
 	std::unique_lock lock(mutex_);
-	cache_[key] = {content, type, ttl, seconds };
+
+	// type if valid
+	cache_[key] = { content, type, ttl, seconds };
+	// type is not valid
 
 	return ttl.time_since_epoch().count();
 }

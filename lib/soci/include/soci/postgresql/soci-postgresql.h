@@ -36,7 +36,7 @@ public:
 
     error_category get_error_category() const override;
 
-    std::string get_backend_name() const override { return "postgre"; }
+    std::string get_backend_name() const override { return "pg"; }
     std::string get_sqlstate() const override;
 
     // This function is only public for compatibility, prefer to use
@@ -406,7 +406,7 @@ struct SOCI_POSTGRESQL_DECL postgresql_session_backend : details::session_backen
 
     std::string get_dummy_from_table() const override { return std::string(); }
 
-    std::string get_backend_name() const override { return "postgre"; }
+    std::string get_backend_name() const override { return "pg"; }
 
     void clean_up();
 
@@ -418,6 +418,10 @@ struct SOCI_POSTGRESQL_DECL postgresql_session_backend : details::session_backen
 
     std::string get_table_names_query() const override;
     std::string get_column_descriptions_query() const override;
+
+    std::string timestamp(const std::string & columnName) override {
+        return "TO_TIMESTAMP(:" + columnName + ")";
+    }
 
     int statementCount_;
     bool single_row_mode_;

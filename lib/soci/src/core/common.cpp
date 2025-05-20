@@ -139,3 +139,12 @@ time_t soci::details::timegm_impl_soci ( struct tm* tb )
     return since_epoch;
 }
 
+namespace soci {
+
+std::string convert_to_string(const std::tm& t) {
+    return std::format("{}-{}-{} {}:{}:{}",
+        t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
+        t.tm_hour, t.tm_min, t.tm_sec);
+}
+
+}
